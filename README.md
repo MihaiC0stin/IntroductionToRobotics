@@ -7,12 +7,12 @@ Description of task:
   Use a separate potentiometer for controlling each color of the RGB LED: Red, Green, and Blue. This control must leverage digital electronics. Specifically, you need to read the potentiometer’s value with Arduino and then write a mapped value to the LED pins.
 
 Components used:
-  RGB LED x1
-  Potentiometers x3
-  Wires 
-  Breadboard x1
-  Resistance of 330 ohms x3
-  Arduino UNO x1
+ - RGB LED x1
+ - Potentiometers x3
+ - Wires 
+ - Breadboard x1
+ - Resistance of 330 ohms x3
+ - Arduino UNO x1
 
 
 Poza setup:
