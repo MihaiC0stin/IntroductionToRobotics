@@ -3,7 +3,19 @@ Repository created for uploading (throughout the third year of faculty) the assi
 
 # Homework 1
 
+Description of task:
+  Use a separate potentiometer for controlling each color of the RGB LED: Red, Green, and Blue. This control must leverage digital electronics. Specifically, you need to read the potentiometer’s value with Arduino and then write a mapped value to the LED pins.
 
+Components used:
+  RGB LED x1
+  Potentiometers x3
+  Wires 
+  Breadboard x1
+  Resistance of 330 ohms x3
+  Arduino UNO x1
+
+
+Poza setup:
 
 ![rgb poza](https://github.com/MihaiC0stin/IntroductionToRobotics/assets/103452863/829ecc3a-8802-4d26-aa15-645ba80f48e1)
 
