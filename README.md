@@ -3,7 +3,7 @@ Repository created for uploading (throughout the third year of faculty) the assi
 
 # Homework 1
 
-## Description of task:
+## Description of task: -
   Use a separate potentiometer for controlling each color of the RGB LED: Red, Green, and Blue. This control must leverage digital electronics. Specifically, you need to read the potentiometer’s value with Arduino and then write a mapped value to the LED pins.
 
 ## Components used:
