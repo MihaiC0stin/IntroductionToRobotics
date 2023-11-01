@@ -60,3 +60,6 @@ Repository created for uploading (throughout the third year of faculty) the assi
 
 ### Link video: https://youtube.com/shorts/I4C5-d9gzW0?feature=share
 
+### What do I think it was the hardest task for this homework ?
+  I think that this homework required much more time than the previous one, and probably the hardest part and the one that took me most of the time was to understand how to use millis so I can get some good "delays". My biggest mistake and problem that required most of the time was that I put everything in a for loop, so my code even with the millis "delays" was chancing the current floors too fast, or better to say, it stayed just 1 cycle between the floors so it did that action too fast for the change to be seen if I wanted to go more than 1 floor at a time. 
+
