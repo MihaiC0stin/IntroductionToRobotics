@@ -63,3 +63,26 @@ Repository created for uploading (throughout the third year of faculty) the assi
 ### What do I think it was the hardest task for this homework ?
   I think that this homework required much more time than the previous one, and probably the hardest part and the one that took me most of the time was to understand how to use millis so I can get some good "delays". My biggest mistake and problem that required most of the time was that I put everything in a for loop, so my code even with the millis "delays" was chancing the current floors too fast, or better to say, it stayed just 1 cycle between the floors so it did that action too fast for the change to be seen if I wanted to go more than 1 floor at a time. 
 
+# Homework 3
+
+### Description of task: 
+  l use the joystick to control the position of the segment and ”draw” on the display. The movement between segments should be natural, meaning they should jump from the current position only to neighbors, but without passing through ”walls”.  The initial position should be on the DP. The current position always blinks (irrespective of the fact that the segment is on or off). Use the joystick to move from one position to neighbors (see table for corresponding movement). Short pressing the button toggles the segment state from ON to OFF or from OFF to ON. Long pressing the button resets the entire display by turning all the segments OFF and moving the current position to the decimal point. Interrupts are required.
+
+
+### Components used:
+ - Joystick x1
+ - 7 segments display x1
+ - Wires 
+ - Breadboard x1
+ - Resistance of 330 ohms x8
+ - Arduino UNO x1
+
+
+### Poza setup:
+![7 segment display drawing setup](https://github.com/MihaiC0stin/IntroductionToRobotics/assets/103452863/625e9912-6f1b-4320-8fbc-5df4ab171c0d)
+
+
+
+
+
+### Link video: https://youtu.be/cXhICiGPM08
