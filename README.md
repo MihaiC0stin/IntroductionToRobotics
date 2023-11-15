@@ -106,7 +106,7 @@ In Pause Mode, the lap flag button doesn’t work anymore. Pressing the reset bu
 
 
 ### Poza setup:
-![stopwatch timer setup](https://github.com/MihaiC0stin/IntroductionToRobotics/assets/103452863/7a72b909-f0f5-4e29-b87e-a0168efced65){:width="50" height="50"}
+<img src = "https://github.com/MihaiC0stin/IntroductionToRobotics/assets/103452863/7a72b909-f0f5-4e29-b87e-a0168efced65" width=50% height=50%>
 
 
 
