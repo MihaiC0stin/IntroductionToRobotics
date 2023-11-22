@@ -1,6 +1,6 @@
 #include <EEPROM.h>
 
-int samplingInterval = -1;
+int samplingInterval = -1; // -1 will be my default value
 int ultrasonicAlertThreshold = -1;
 int ldrAlertThreshold = -1;
 bool inMainMenu = true;
@@ -8,7 +8,7 @@ bool inSensorSettings = false;
 bool inResetLoggerData = false;
 bool inSystemStatus = false;
 bool inRgbLedControl = false;
-int readOption = -1;
+int readOption = -1;  // these will be used as temp variables to remember options for submenus (needed as flags too, to remember in what submenu we are)
 int readOption2 = -1;
 
 int photocellPin = A0;   // the cell and 10K pulldown are connected to a0
@@ -25,28 +25,28 @@ const int echoPin = 10;
 long duration = 0;
 long distance = 0;
 unsigned long int prevTimeSampleTaken = 0;
-unsigned long int prevTimeTrigger = 0;
+unsigned long int prevTimeTrigger = 0;    // tried to make ultrasonic code using micros instead delaymicros, I commented the function, but you can check if it works, for me this sensor is not reliable.
 
-bool allowPrintSensorValues = false;
+bool allowPrintSensorValues = false;   // flag used for printing sensor's values at a set sample rate
 
-const int triggerDelayHIGH = 12;
+const int triggerDelayHIGH = 12; //also used at ultrasonic code
 const int triggerDelayLOW = 2;
 
 
 const int numberOfSavedLogs = 10;
 
-bool completeCycle = true;
+bool completeCycle = true; // used at ultrasonic code
 
-int currentSavedLog = 0;
+int currentSavedLog = 0; //iterator for logs
 
-bool ledAutomaticMode = false;
+bool ledAutomaticMode = false; // flag for toggle automatic mod 
 
-const int colors = 3;
-int rgbColor[colors] = { 0, 0, 0 };
-int rgbColorPins[colors] = { 3, 5, 6 };
-int currentCollor = 0;
+const int colors = 3; 
+int rgbColor[colors] = { 0, 0, 0 }; // array used to set led rgb value for manual mode
+int rgbColorPins[colors] = { 3, 5, 6 }; //also the pins
+int currentCollor = 0; // iterator for manual mode
 
-const int minSampleRate = 1;
+const int minSampleRate = 1; //some variables to not have magic numbers
 const int maxSampleRate = 10;
 const int minimumAlertThreshold = 1;
 
@@ -54,7 +54,9 @@ const int longBytes = 4;
 const int intBytes = 2;
 const int maxLedLuminosity = 255;
 const int minLedLuminosity = 0;
-const int totalResetBytes = (longBytes + intBytes) * numberOfSavedLogs;
+const int totalResetBytes = (longBytes + intBytes) * numberOfSavedLogs;  //number of total bytes that have to be reseted for 10 logs of long and 10 logs of int
+
+const int inputThatStopsReadings = 5;
 
 
 
@@ -70,11 +72,11 @@ void setup() {
 }
 
 void loop() {
-  handleInputAndMenuOperations();
-  ultrasonicSensorReading();
-  ldrSensorReading();
-  printReadings();
-  ledBehavior();
+  handleInputAndMenuOperations();     // used for read serial input and also for navigating between menus and submenus using set flags
+  ultrasonicSensorReading();          // function for ultrasonic sensor from lab
+  ldrSensorReading();                 // function for ldr sensor from lab
+  printReadings();                    // function that print sensor's values and put them in EEPROM 
+  ledBehavior();                      // function used to check led's flags, like for example if the toggle for auto mode is on/off and to send values to led using analog write
 }
 
 void handleInputAndMenuOperations() {
@@ -83,7 +85,7 @@ void handleInputAndMenuOperations() {
     if (inMainMenu == true) {
       mainMenu(read);
     } else {
-      if (inSensorSettings == true && readOption == -1 && readOption2 == -1) {
+      if (inSensorSettings == true && readOption == -1 && readOption2 == -1) {       // the trick is read -> save option -> read -> save option -> read (and this is just for 3 submenus, imagine 10, not the brightest idea, but it works)
         sensorSettings(read, readOption, readOption);
       } else if (inSensorSettings == true && readOption != -1 && readOption2 == -1) {
         sensorSettings(readOption, read, readOption2);
@@ -97,8 +99,8 @@ void handleInputAndMenuOperations() {
       }
       if (inSystemStatus == true && allowPrintSensorValues == false) {
         systemStatus(read);
-      } else if (inSystemStatus == true && allowPrintSensorValues == true) {
-        if (read == 5) {
+      } else if (inSystemStatus == true && allowPrintSensorValues == true) { // you have to input the set value (5) that will toggle the flag for reading and printing sensor values. Other value, but 5, will not work.
+        if (read == inputThatStopsReadings) {                             //   YOHOOOO -1 MAGIC WORDS ! LETS F**** GOOO !!!!
           systemStatus(read);
         }
       }
@@ -111,7 +113,8 @@ void handleInputAndMenuOperations() {
   }
 }
 
-void handleError() {
+//function that just prints a warning if the user's input is not one of the options from menu/submenus
+void handleError() {   
   Serial.println();
   Serial.println(F("Warning! The selected option is invalid !"));
 }
@@ -128,7 +131,7 @@ void printMainMenu() {
 void mainMenu(int option) {
   switch (option) {
     case 1:
-      inMainMenu = false;
+      inMainMenu = false;             //example of flags that are set
       inSensorSettings = true;
       printSensorSettings();
       break;
@@ -174,15 +177,15 @@ void printSensorSettingsResetMenu() {
 }
 
 void sensorSettings(int option, int serialInput, int confirmationDialogDecision) {
-  readOption = option;
+  readOption = option; // save the first option
   switch (option) {
     case 1:
-      if (serialInput <= maxSampleRate && serialInput >= minSampleRate) {
-        samplingInterval = serialInput * 1000;
+      if (serialInput <= maxSampleRate && serialInput >= minSampleRate) { //checks for input to be between 1 and 10
+        samplingInterval = serialInput * 1000;        // multiply by 1000 for using ms
         Serial.print(F("Sensor's sampling rate set to: "));
-        Serial.print(samplingInterval / 1000);
+        Serial.print(samplingInterval / 1000);     // div by 1000 to print the sampling rate in seconds
         Serial.println(F(" seconds"));
-        readOption = -1;
+        readOption = -1; //reset the flag
         printSensorSettings();
       } else {
         Serial.println();
@@ -214,10 +217,10 @@ void sensorSettings(int option, int serialInput, int confirmationDialogDecision)
       }
       break;
     case 4:
-      readOption2 = serialInput;
+      readOption2 = serialInput; // save the second option (in this case is not a value, but a submenu option, for what sensor to be reset)
       switch (serialInput) {
         case 1:
-          if (confirmationDialogDecision == 1) {
+          if (confirmationDialogDecision == 1) {      // check if the user chose 1 (YES) for reset
             samplingInterval = -1;
             Serial.println(F("Sampling rate has been reset !"));
             readOption2 = -1;
@@ -275,12 +278,12 @@ void sensorSettings(int option, int serialInput, int confirmationDialogDecision)
           }
           break;
         case 5:
-          readOption = -1;
+          readOption = -1;    //reset flags to go back in previous menu
           readOption2 = -1;
           printSensorSettings();
           break;
-        default:
-          readOption2 = -1;
+        default:              
+          readOption2 = -1;   // reset second option flag to stay in this submenu (not go futher to the confirmation dialog menu)
           printSensorSettingsResetMenu();
           break;
       }
@@ -289,11 +292,11 @@ void sensorSettings(int option, int serialInput, int confirmationDialogDecision)
       inMainMenu = true;
       inSensorSettings = false;
       readOption = -1;
-      printMainMenu();
+      printMainMenu();    //reset flags to go back in previous menu
       break;
     default:
       handleError();
-      readOption = -1;
+      readOption = -1;    // reset first option flag to stay in this menu
       printSensorSettings();
       break;
   }
@@ -321,7 +324,7 @@ void resetLoggerData(int option, int confirmationDialogDecision) {
   switch (option) {
     case 1:
       if (confirmationDialogDecision == 1) {
-        for (int i = intBytes * numberOfSavedLogs; i < totalResetBytes; i++) {
+        for (int i = intBytes * numberOfSavedLogs; i < totalResetBytes; i++) { // basically, resets bytes from 20 to 59
           EEPROM.update(i, 0);
         }
         Serial.println(F("Logger data for Ultrasonic sensor has been reset !"));
@@ -337,7 +340,7 @@ void resetLoggerData(int option, int confirmationDialogDecision) {
       break;
     case 2:
       if (confirmationDialogDecision == 1) {
-        for (int i = 0; i < intBytes * numberOfSavedLogs; i++) {
+        for (int i = 0; i < intBytes * numberOfSavedLogs; i++) {    //basically x2, resets bytes from 0 to 19
           EEPROM.update(i, 0);
         }
         Serial.println(F("Logger data for LDR sensor has been reset"));
@@ -393,8 +396,8 @@ void printSystemStatus() {
 void systemStatus(int option) {
   switch (option) {
     case 1:
-      if (samplingInterval / 1000 >= minSampleRate && samplingInterval / 1000 <= maxSampleRate) {
-        Serial.println(F("| Ultrasonic Sensor Readings | LDR Sensor Readings |"));
+      if (samplingInterval / 1000 >= minSampleRate && samplingInterval / 1000 <= maxSampleRate) {      //if sample rate is not between the set values as min and max then it will not toggle the flag to read
+        Serial.println(F("| Ultrasonic Sensor Readings | LDR Sensor Readings |"));                     // I could just check if it is -1 (without to be divided) or 0 if divided, but safer, the better
         allowPrintSensorValues = true;
       } else {
         Serial.println(F("Warning ! Sample rate value not set. Please set a value for sample rate to read sensor values."));
@@ -416,12 +419,12 @@ void systemStatus(int option) {
       Serial.println(F("| Ultrasonic Sensor Logs | LDR Sensor Logs |"));
       for (int i = 0; i < numberOfSavedLogs; i++) {
         long currentUltrasonicLog;
-        EEPROM.get((i * longBytes) + 20, currentUltrasonicLog);
+        EEPROM.get((i * longBytes) + 20, currentUltrasonicLog); //reads every 4 bytes, goes from 20 to 56
         Serial.print("              ");
         Serial.print(currentUltrasonicLog);
         Serial.print("                        ");
         int currentLdrLog;
-        EEPROM.get(i * intBytes, currentLdrLog);
+        EEPROM.get(i * intBytes, currentLdrLog); //reads every 2 bytes goes from 0 to 18 (last log information is saved on 18 and 19 address)
         Serial.print(currentLdrLog);
         Serial.println("           ");
       }
@@ -443,8 +446,8 @@ void systemStatus(int option) {
 }
 
 void printReadings() {
-  if (allowPrintSensorValues == true && millis() - prevTimeSampleTaken >= samplingInterval) {
-    Serial.print("              ");
+  if (allowPrintSensorValues == true && millis() - prevTimeSampleTaken >= samplingInterval) {           //print and saves the sensor's reading in EEPROM in first 60 addresses;
+    Serial.print("              ");                         
     Serial.print(distance);
     Serial.print("                        ");
     Serial.print(photocellValue);
@@ -471,7 +474,7 @@ void rgbLedControl(int option, int colorValue) {
   readOption = option;
   switch (option) {
     case 1:
-      if (colorValue > -1 && colorValue <= maxLedLuminosity && currentCollor < colors) {
+      if (colorValue > -1 && colorValue <= maxLedLuminosity && currentCollor < colors) { //improvised for, I need to put value for every rgb led, so it will enter 3 times in the function, so I have to read on a line 3 values, blue green red
         rgbColor[currentCollor] = colorValue;
         currentCollor++;
       } else {
@@ -479,14 +482,14 @@ void rgbLedControl(int option, int colorValue) {
         Serial.println(F("Give 3 valors (0-255) for Blue, Green and Red leds using space between them: "));
       }
 
-      if (currentCollor >= colors) {
+      if (currentCollor >= colors) {  // if the iterator goes further than 3 iterations, the flag and iterator are reset
         readOption = -1;
         currentCollor = 0;
         printRgbLedControl();
       }
       break;
     case 2:
-      if (ultrasonicAlertThreshold >= 0 && ldrAlertThreshold >= 0) {
+      if (ultrasonicAlertThreshold >= 0 && ldrAlertThreshold >= 0) { // I made so you can't switch to auto mode if you have the alert threshold not set
         ledAutomaticMode = !ledAutomaticMode;
         readOption = -1;
         Serial.print(F("Led's mode was switched to "));
@@ -497,8 +500,8 @@ void rgbLedControl(int option, int colorValue) {
         }
         printRgbLedControl();
       } else {
-        Serial.println(F("Warning ! Threshold alert not set for Ultrasonic sensor or LDR sensor. Please set the threshold values for both so you can enable the automatic mod."));
-        inSensorSettings = true;
+        Serial.println(F("Warning ! Threshold alert not set for Ultrasonic sensor or LDR sensor. Please set the threshold values for both so you can enable the automatic mod.")); //also a warning and set the flags
+        inSensorSettings = true;                                                                                                                                                   //to send you to sensor settings menu
         inRgbLedControl = false;
         readOption = -1;
         printSensorSettings();
@@ -519,17 +522,17 @@ void rgbLedControl(int option, int colorValue) {
 
 void ledBehavior() {
   if (ledAutomaticMode == true) {
-    if (distance <= ultrasonicAlertThreshold || photocellValue <= ldrAlertThreshold) {
+    if (distance <= ultrasonicAlertThreshold || photocellValue <= ldrAlertThreshold) { //check if the distance is less than the threshold alert that I set, if it is, turns the led red
       analogWrite(ledPinRed, maxLedLuminosity);
       analogWrite(ledPinBlue, minLedLuminosity);
       analogWrite(ledpinGreen, minLedLuminosity);
-    } else {
+    } else {                                                // else let stays green
       analogWrite(ledpinGreen, maxLedLuminosity);
       analogWrite(ledPinBlue, minLedLuminosity);
       analogWrite(ledPinRed, minLedLuminosity);
     }
   } else {
-    for (int i = 0; i < colors; i++) {
+    for (int i = 0; i < colors; i++) {                      // if the auto mod is off, sets the led values to the values that were set in manual mod
       analogWrite(rgbColorPins[i], rgbColor[i]);
     }
   }
@@ -537,8 +540,8 @@ void ledBehavior() {
 
 
 
-// void ultrasonicSensorReading() {
-//   if (completeCycle == true) {
+// void ultrasonicSensorReading() {                           // my try to change the delay to micros tell me in feedback if the code was good, chose to let it here and used
+//   if (completeCycle == true) {                             // the code from lab to make sure if a problem appears is not from here :)
 //     // Clears the trigPin
 //     digitalWrite(trigPin, LOW);
 //     if (micros() - prevTimeTrigger >= triggerDelayLOW) {
