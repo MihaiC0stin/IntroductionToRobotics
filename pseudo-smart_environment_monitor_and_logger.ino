@@ -50,13 +50,20 @@ const int minSampleRate = 1; //some variables to not have magic numbers
 const int maxSampleRate = 10;
 const int minimumAlertThreshold = 1;
 
+const int doubleBytes = 8;
 const int longBytes = 4;
 const int intBytes = 2;
 const int maxLedLuminosity = 255;
 const int minLedLuminosity = 0;
 const int totalResetBytes = (longBytes + intBytes) * numberOfSavedLogs;  //number of total bytes that have to be reseted for 10 logs of long and 10 logs of int
 
-const int inputThatStopsReadings = 5;
+const int inputThatStopsReadings = 6;
+
+double sumLuminosity = 0;
+double sumDistance = 0;
+const int averageLuminosityAdress = 100;
+const int averageDistanceAdress = averageLuminosityAdress + doubleBytes;
+unsigned long int counter = 0;
 
 
 
@@ -99,7 +106,7 @@ void handleInputAndMenuOperations() {
       }
       if (inSystemStatus == true && allowPrintSensorValues == false) {
         systemStatus(read);
-      } else if (inSystemStatus == true && allowPrintSensorValues == true) { // you have to input the set value (5) that will toggle the flag for reading and printing sensor values. Other value, but 5, will not work.
+      } else if (inSystemStatus == true && allowPrintSensorValues == true) { // you have to input the set value (6) that will toggle the flag for reading and printing sensor values. Other value, but 5, will not work.
         if (read == inputThatStopsReadings) {                             //   YOHOOOO -1 MAGIC WORDS ! LETS F**** GOOO !!!!
           systemStatus(read);
         }
@@ -305,11 +312,14 @@ void sensorSettings(int option, int serialInput, int confirmationDialogDecision)
 
 void printResetLoggerData() {
   Serial.println();
-  Serial.println(F("Select which device's logs to be reset: "));
-  Serial.println(F("  2.1. Ultrasonic sensor"));
-  Serial.println(F("  2.2. LDR sensor"));
-  Serial.println(F("  2.3. All sensors available"));
-  Serial.println(F("  2.4. Back "));
+  Serial.println(F("Select from options what you wish to reset: "));
+  Serial.println(F("  2.1. Ultrasonic Sensor's logs"));
+  Serial.println(F("  2.2. LDR Sensor's logs"));
+  Serial.println(F("  2.3. All logs"));
+  Serial.println(F("  2.4. The Average distance"));
+  Serial.println(F("  2.5. The Average luminosity"));
+  Serial.println(F("  2.6. All average values"));
+  Serial.println(F("  2.7. Back"));
 }
 
 void printConfirmationDialog() {
@@ -371,6 +381,54 @@ void resetLoggerData(int option, int confirmationDialogDecision) {
       }
       break;
     case 4:
+        if (confirmationDialogDecision == 1) {
+        for (int i = averageDistanceAdress; i < (averageDistanceAdress + doubleBytes) ; i++) {
+          EEPROM.update(i, 0);
+        }
+        Serial.println(F("Average Distance has been reset"));
+        readOption = -1;
+        printResetLoggerData();
+      } else if (confirmationDialogDecision == 2) {
+        Serial.println(F("Average Distance has NOT been reset !"));
+        readOption = -1;
+        printResetLoggerData();
+      } else {
+        printConfirmationDialog();
+      }
+      break;
+    case 5:
+          if (confirmationDialogDecision == 1) {
+        for (int i = averageLuminosityAdress; i < (averageLuminosityAdress + doubleBytes); i++) {
+          EEPROM.update(i, 0);
+        }
+        Serial.println(F("Average luminosity has been reset"));
+        readOption = -1;
+        printResetLoggerData();
+      } else if (confirmationDialogDecision == 2) {
+        Serial.println(F("Average Luminosity has NOT been reset !"));
+        readOption = -1;
+        printResetLoggerData();
+      } else {
+        printConfirmationDialog();
+      }
+      break;
+    case 6:
+          if (confirmationDialogDecision == 1) {
+        for (int i = averageLuminosityAdress ; i < (averageDistanceAdress + doubleBytes) ; i++) {
+          EEPROM.update(i, 0);
+        }
+        Serial.println(F("All average values have been reset"));
+        readOption = -1;
+        printResetLoggerData();
+      } else if (confirmationDialogDecision == 2) {
+        Serial.println(F("All average values have NOT been reset"));
+        readOption = -1;
+        printResetLoggerData();
+      } else {
+        printConfirmationDialog();
+      }
+      break;
+    case 7:
       inMainMenu = true;
       inResetLoggerData = false;
       readOption = -1;
@@ -387,10 +445,11 @@ void resetLoggerData(int option, int confirmationDialogDecision) {
 void printSystemStatus() {
   Serial.println();
   Serial.println(F("3.System Status"));
-  Serial.println(F("  3.1. Current Sensor Readings (press 5 to stop)"));
+  Serial.println(F("  3.1. Current Sensor Readings (press 6 to stop)"));
   Serial.println(F("  3.2. Current Sensor Settings"));
   Serial.println(F("  3.3. Display Logged Data"));
-  Serial.println(F("  3.4. Back "));
+  Serial.println(F("  3.4. Display Average Readings"));
+  Serial.println(F("  3.5. Back "));
 }
 
 void systemStatus(int option) {
@@ -431,11 +490,23 @@ void systemStatus(int option) {
       printSystemStatus();
       break;
     case 4:
+      Serial.println();
+      Serial.print(F("Average Luminosity: "));
+      double averageLuminosity;
+      EEPROM.get(averageLuminosityAdress, averageLuminosity);
+      Serial.println(averageLuminosity);
+      Serial.print(F("Average Distance: "));
+      double averageDistance;
+      EEPROM.get(averageDistanceAdress, averageDistance);
+      Serial.println(averageDistance);
+      printSystemStatus();
+      break;
+    case 5:
       inMainMenu = true;
       inSystemStatus = false;
       printMainMenu();
       break;
-    case 5:
+    case 6:
       allowPrintSensorValues = false;
       printSystemStatus();
       break;
@@ -452,8 +523,13 @@ void printReadings() {
     Serial.print("                        ");
     Serial.print(photocellValue);
     Serial.println("           ");
-    EEPROM.put((currentSavedLog * longBytes) + 20, distance);
+    sumLuminosity = photocellValue + sumLuminosity;                                                       //calculates average and put it in EEPROM
+    sumDistance = distance + sumDistance;
+    counter++;
+    EEPROM.put((currentSavedLog * longBytes) + (intBytes * numberOfSavedLogs), distance);
     EEPROM.put(currentSavedLog * intBytes, photocellValue);
+    EEPROM.put(averageLuminosityAdress,sumLuminosity/counter);
+    EEPROM.put(averageDistanceAdress,sumDistance/counter);
     currentSavedLog++;
     if (currentSavedLog >= numberOfSavedLogs) {
       currentSavedLog = 0;
