@@ -153,12 +153,12 @@ Menu Structure1:
 
 
 ### Poza setup:
-<img src = "https://github.com/MihaiC0stin/IntroductionToRobotics/assets/103452863/7a72b909-f0f5-4e29-b87e-a0168efced65" width=50% height=50%>
+<img src = "https://github.com/MihaiC0stin/IntroductionToRobotics/assets/103452863/9526e990-b2aa-4e0d-9270-546059ce4523" width=50% height=50%>
 
 
 
 
-### Link video: https://youtu.be/EdleCymhbNs?si=ZAodPYVREG4-bMso
+### Link video: https://www.youtube.com/watch?v=8CXzV7KREtM
 
 
 
